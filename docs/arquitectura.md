@@ -55,9 +55,29 @@ El entorno local permitirá desarrollar y probar el sistema en una sola computad
 └──────────────────────────┘
 ```
 
-## 4. Componentes principales
+## 4. Estrategia de generación de datos
 
-### 4.1 Apache Kafka
+El sistema utilizará datos simulados para representar logs y métricas de servidores.
+
+La generación de datos se dividirá en dos partes:
+
+1. Datos descriptivos generados con Faker.
+2. Métricas numéricas generadas con rangos controlados.
+
+Faker se utilizará para generar datos variables y realistas, como usuarios, ciudades, fechas e IPs. Sin embargo, las métricas de rendimiento no se generarán directamente con Faker, ya que deben mantener coherencia estadística.
+
+Por ejemplo:
+
+- Los eventos `INFO` tendrán valores normales de CPU, RAM, latencia y errores.
+- Los eventos `WARNING` tendrán valores moderadamente altos.
+- Los eventos `ERROR` tendrán valores altos.
+- Los eventos `CRITICAL` tendrán valores críticos.
+
+Esta estrategia permite que los análisis realizados con Spark tengan sentido, ya que los datos presentan patrones detectables.
+
+## 5. Componentes principales
+
+### 5.1 Apache Kafka
 
 Apache Kafka será utilizado como plataforma de mensajería distribuida para recibir, almacenar y distribuir eventos generados por servidores simulados.
 
@@ -78,7 +98,7 @@ Kafka funcionará en un clúster de tres nodos físicos. Cada nodo tendrá funci
 - Nodo 2 → Kafka Broker 2 + Controller 2
 - Nodo 3 → Kafka Broker 3 + Controller 3
 
-### 4.2 Tópicos Kafka
+### 5.2 Tópicos Kafka
 
 Se crearán al menos cinco tópicos para separar los eventos por tipo.
 
@@ -98,7 +118,7 @@ Se crearán al menos cinco tópicos para separar los eventos por tipo.
 | `metricas_red`      | Eventos relacionados con latencia, tráfico de red y conexiones activas.           |
 | `logs_seguridad`    | Eventos relacionados con accesos, autenticaciones fallidas e IPs sospechosas.     |
 
-### 4.3 Productores Kafka
+### 5.3 Productores Kafka
 
 Los productores serán programas encargados de enviar mensajes a Kafka.
 
@@ -122,7 +142,7 @@ Tópico Kafka
 Particiones del tópico
 ```
 
-### 4.4 Consumidores Kafka
+### 5.4 Consumidores Kafka
 
 Los consumidores serán programas encargados de leer mensajes desde Kafka.
 
@@ -144,7 +164,7 @@ Consumidor Kafka
 Lectura y visualización del mensaje
 ```
 
-### 4.5 Apache Spark
+### 5.5 Apache Spark
 
 Apache Spark será utilizado para el procesamiento distribuido de los datos generados.
 
@@ -165,7 +185,7 @@ El clúster Spark estará compuesto por un nodo Master y dos nodos Workers.
 - Distribuir tareas entre los Workers.
 - Comparar procesamiento local contra procesamiento distribuido.
 
-### 4.6 Spark Master
+### 5.6 Spark Master
 
 El Spark Master será el nodo encargado de coordinar la ejecución de los trabajos.
 
@@ -176,7 +196,7 @@ Sus funciones principales son:
 - Distribuir tareas entre los Workers.
 - Supervisar la ejecución de los trabajos.
 
-### 4.7 Spark Workers
+### 5.7 Spark Workers
 
 Los Spark Workers serán los nodos encargados de ejecutar las tareas asignadas por el Master.
 
@@ -187,7 +207,7 @@ Sus funciones principales son:
 - Reportar estado al Master.
 - Participar en el procesamiento paralelo.
 
-### 4.8 Base de datos SQL
+### 5.8 Base de datos SQL
 
 La base de datos SQL almacenará una versión estructurada de los logs y métricas generados.
 
@@ -199,7 +219,7 @@ logs_metricas_servidores
 
 La base de datos se utilizará como una de las fuentes de datos para Spark.
 
-### 4.9 Datos CSV y JSON
+### 5.9 Datos CSV y JSON
 
 Además de la base de datos SQL, se generarán archivos CSV y JSON.
 
@@ -213,31 +233,97 @@ data/raw/logs_metricas.sql
 
 Spark leerá estos archivos para ejecutar análisis distribuidos.
 
-## 5. Flujo general del sistema
+## 6. Modelo de datos
+
+Cada registro representa un evento de monitoreo generado por un servidor o servicio.
+
+Campos principales:
+
+- `id_log`
+- `timestamp_evento`
+- `servidor`
+- `ip_servidor`
+- `servicio`
+- `tipo_evento`
+- `nivel`
+- `codigo_estado`
+- `endpoint`
+- `usuario`
+- `ciudad`
+- `tiempo_respuesta_ms`
+- `uso_cpu_porcentaje`
+- `uso_ram_porcentaje`
+- `uso_disco_porcentaje`
+- `bytes_entrada`
+- `bytes_salida`
+- `peticiones_por_minuto`
+- `conexiones_activas`
+- `errores_minuto`
+- `latencia_red_ms`
+- `temperatura_cpu`
+- `mensaje`
+
+### Ejemplo de registro JSON
+
+```json
+{
+  "id_log": 1,
+  "timestamp_evento": "2026-06-01 10:35:22",
+  "servidor": "server-01",
+  "ip_servidor": "192.168.1.101",
+  "servicio": "api-gateway",
+  "tipo_evento": "request",
+  "nivel": "INFO",
+  "codigo_estado": 200,
+  "endpoint": "/api/productos",
+  "usuario": "usuario_demo",
+  "ciudad": "Aguascalientes",
+  "tiempo_respuesta_ms": 145,
+  "uso_cpu_porcentaje": 45.7,
+  "uso_ram_porcentaje": 62.3,
+  "uso_disco_porcentaje": 58.9,
+  "bytes_entrada": 2048,
+  "bytes_salida": 8192,
+  "peticiones_por_minuto": 320,
+  "conexiones_activas": 87,
+  "errores_minuto": 2,
+  "latencia_red_ms": 24,
+  "temperatura_cpu": 61.3,
+  "mensaje": "Solicitud procesada correctamente"
+}
+```
+
+## 7. Flujo general del sistema
+
+### Flujo de procesamiento histórico
 
 ```text
-Generador de datos
+Script generador con Faker + métricas controladas
         ↓
 Archivos CSV / JSON / SQL
         ↓
-Procesamiento con Spark
+Apache Spark
+        ↓
+Procesamiento estadístico distribuido
         ↓
 Resultados en spark/output/
 ```
 
-También existirá el flujo de eventos en tiempo real:
+### Flujo de eventos en tiempo real
 
 ```text
+Script generador de eventos
+        ↓
 Productor Kafka
         ↓
-Tópico Kafka
+Tópicos Kafka
         ↓
 Particiones replicadas
         ↓
-Consumidor Kafka
+Consumidores Kafka
 ```
 
-Flujo completo:
+### Flujo completo
 
 ```text
 Servidores simulados
@@ -261,7 +347,7 @@ Análisis estadístico
 Resultados
 ```
 
-## 6. Red del sistema
+## 8. Red del sistema
 
 La red principal será una red local proporcionada por un módem, router o switch.
 
@@ -273,7 +359,7 @@ Cada máquina tendrá una IP fija o reservada.
 | Nodo 2 | 192.168.1.102   | Broker + Controller 2  | Worker 1  |
 | Nodo 3 | 192.168.1.103   | Broker + Controller 3  | Worker 2  |
 
-## 7. Puertos principales
+## 9. Puertos principales
 
 | Servicio            | Puerto | Descripción                          |
 | ------------------- | ------ | ------------------------------------ |
@@ -284,7 +370,7 @@ Cada máquina tendrá una IP fija o reservada.
 | Spark Worker Web UI | 8081   | Interfaz web del Worker.             |
 | Base de datos SQL   | 3306   | Conexión a base de datos.            |
 
-## 8. Entorno local
+## 10. Entorno local
 
 El entorno local se utilizará para desarrollar y probar el sistema en una sola máquina.
 
@@ -304,7 +390,7 @@ Este entorno permitirá probar:
 - Scripts PySpark.
 - Base de datos SQL.
 
-## 9. Entorno distribuido
+## 11. Entorno distribuido
 
 El entorno distribuido será la versión final del proyecto.
 
@@ -318,7 +404,7 @@ docker/cluster/nodo3/docker-compose.yml
 
 Cada archivo tendrá la configuración correspondiente a su nodo físico.
 
-## 10. Migración de local a distribuido
+## 12. Migración de local a distribuido
 
 La migración se realizará de forma gradual.
 
@@ -350,7 +436,7 @@ Ejecutar pruebas de envío, consumo y procesamiento.
 
 Realizar pruebas de caída de nodos.
 
-## 11. Consideraciones importantes
+## 13. Consideraciones importantes
 
 Para que el sistema distribuido funcione correctamente se deben considerar los siguientes puntos:
 
@@ -363,7 +449,7 @@ Para que el sistema distribuido funcione correctamente se deben considerar los s
 - Documentar cada prueba realizada.
 - Mantener separada la configuración local de la configuración distribuida.
 
-## 12. Arquitectura esperada final
+## 14. Arquitectura esperada final
 
 Al finalizar el proyecto, se espera contar con:
 

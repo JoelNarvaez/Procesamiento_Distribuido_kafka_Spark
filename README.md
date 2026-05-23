@@ -22,6 +22,7 @@ Diseñar e implementar un sistema distribuido utilizando Apache Kafka, Apache Sp
 - Docker Compose.
 - JavaScript / Node.js.
 - Python / PySpark.
+- Faker.
 - SQL.
 - Git.
 - Visual Studio Code.
@@ -102,6 +103,7 @@ proyecto-final-distribuido/
 │   ├── pruebas.md
 │   └── resultados.md
 │
+├── requirements.txt
 ├── .gitignore
 └── README.md
 ```
@@ -193,7 +195,7 @@ Cada tópico tendrá particiones y factor de replicación.
 
 ## 9. Modelo de datos
 
-Cada registro representará un evento generado por un servidor.
+Cada registro representa un evento de monitoreo generado por un servidor o servicio.
 
 Campos principales:
 
@@ -205,6 +207,9 @@ Campos principales:
 - `tipo_evento`
 - `nivel`
 - `codigo_estado`
+- `endpoint`
+- `usuario`
+- `ciudad`
 - `tiempo_respuesta_ms`
 - `uso_cpu_porcentaje`
 - `uso_ram_porcentaje`
@@ -223,16 +228,19 @@ Campos principales:
 ```json
 {
   "id_log": 1,
-  "timestamp_evento": "2026-06-01T10:35:22",
+  "timestamp_evento": "2026-06-01 10:35:22",
   "servidor": "server-01",
   "ip_servidor": "192.168.1.101",
   "servicio": "api-gateway",
   "tipo_evento": "request",
   "nivel": "INFO",
   "codigo_estado": 200,
+  "endpoint": "/api/productos",
+  "usuario": "usuario_demo",
+  "ciudad": "Aguascalientes",
   "tiempo_respuesta_ms": 145,
-  "uso_cpu_porcentaje": 67.5,
-  "uso_ram_porcentaje": 74.2,
+  "uso_cpu_porcentaje": 45.7,
+  "uso_ram_porcentaje": 62.3,
   "uso_disco_porcentaje": 58.9,
   "bytes_entrada": 2048,
   "bytes_salida": 8192,
@@ -300,7 +308,33 @@ Para ejecutar el proyecto se requiere:
 - Tres máquinas físicas para la versión distribuida.
 - Red local con IPs fijas o reservadas.
 
-## 14. Instalación inicial del proyecto
+## 14. Dependencias de Python
+
+Para la generación de datos se utiliza la librería Faker.
+
+El archivo `requirements.txt` debe contener:
+
+```txt
+Faker
+```
+
+Para instalar las dependencias se recomienda usar un entorno virtual:
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+Para ejecutar el generador de datos:
+
+```bash
+python data/generator/generar_logs.py
+```
+
+> **Nota:** No se recomienda instalar paquetes directamente en el Python global del sistema. En distribuciones recientes de Ubuntu o Linux Mint puede aparecer el error `externally-managed-environment`, por lo que se debe usar un entorno virtual.
+
+## 15. Instalación inicial del proyecto
 
 Crear la estructura de carpetas:
 
@@ -344,6 +378,7 @@ touch docs/pruebas.md
 touch docs/resultados.md
 
 touch README.md
+touch requirements.txt
 touch .gitignore
 ```
 
@@ -353,27 +388,29 @@ Dar permiso de ejecución al script de tópicos:
 chmod +x kafka/topics/crear_topicos.sh
 ```
 
-## 15. Estado actual del proyecto
+## 16. Estado actual del proyecto
 
-- Tema definido.
-- Alcance inicial definido.
+- Estructura de carpetas creada.
+- Documentación inicial creada.
+- Alcance definido.
 - Arquitectura base definida.
-- Estructura de carpetas definida.
-- Tecnologías principales seleccionadas.
-- Estrategia de migración local a distribuida definida.
+- Tema seleccionado: monitoreo distribuido de logs y métricas de servidores.
+- Entorno virtual de Python configurado.
+- Dependencia Faker agregada al proyecto.
+- Modelo de datos actualizado.
+- Generador de datos en desarrollo.
 
-## 16. Próximos pasos
+## 17. Próximos pasos
 
-1. Crear la estructura del proyecto en Visual Studio Code.
-2. Crear el generador de datos.
-3. Generar 100,000 registros en CSV, JSON y SQL.
-4. Crear el esquema SQL.
-5. Crear el entorno local con Docker Compose.
-6. Levantar Kafka local.
-7. Crear los tópicos Kafka.
-8. Desarrollar productor y consumidor.
-9. Levantar Spark local.
-10. Crear los scripts de análisis con PySpark.
-11. Migrar a tres máquinas físicas.
-12. Ejecutar pruebas de tolerancia a fallos.
-13. Documentar resultados y conclusiones.
+1. Finalizar el generador de datos.
+2. Generar 100,000 registros en CSV, JSON y SQL.
+3. Crear el esquema SQL.
+4. Crear el entorno local con Docker Compose.
+5. Levantar Kafka local.
+6. Crear los tópicos Kafka.
+7. Desarrollar productor y consumidor.
+8. Levantar Spark local.
+9. Crear los scripts de análisis con PySpark.
+10. Migrar a tres máquinas físicas.
+11. Ejecutar pruebas de tolerancia a fallos.
+12. Documentar resultados y conclusiones.
