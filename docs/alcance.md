@@ -35,9 +35,21 @@ Diseñar e implementar un sistema distribuido para la recolección, transmisión
 
 El sistema incluirá las siguientes funcionalidades:
 
-### 4.1 Generación de datos
+### 4.1 Generación de datos simulados
 
-Se desarrollará un generador de datos capaz de crear registros simulados de logs y métricas de servidores.
+La generación de datos se realizará mediante un script desarrollado en Python. Para mejorar el realismo de los datos descriptivos se utilizará la librería Faker, mientras que las métricas numéricas serán generadas mediante rangos controlados con lógica propia.
+
+Faker se utilizará para generar datos como:
+
+- Fechas y horas de eventos.
+- Direcciones IP privadas.
+- Usuarios.
+- Ciudades.
+- Información descriptiva simulada.
+
+Las métricas técnicas serán generadas mediante valores aleatorios controlados, ya que deben conservar coherencia con el nivel del evento. Por ejemplo, un evento de nivel `CRITICAL` debe presentar mayor uso de CPU, RAM, latencia, errores por minuto y tiempo de respuesta.
+
+Esta decisión permite generar datos más realistas y útiles para análisis estadístico con Apache Spark.
 
 Los datos generados incluirán información como:
 
@@ -49,6 +61,9 @@ Los datos generados incluirán información como:
 - Tipo de evento.
 - Nivel del log.
 - Código de estado HTTP.
+- Endpoint accedido.
+- Usuario asociado al evento.
+- Ciudad de origen.
 - Tiempo de respuesta.
 - Uso de CPU.
 - Uso de RAM.
@@ -145,11 +160,15 @@ El proyecto contempla el uso de las siguientes tecnologías:
 - Docker.
 - Docker Compose.
 - JavaScript / Node.js.
-- Python / PySpark.
+- Python.
+- PySpark.
+- Faker.
 - SQL.
-- Red local con IPs fijas.
+- Git.
 - Visual Studio Code.
-- Git y GitHub.
+- Red local con IPs fijas.
+
+Faker no es una tecnología central como Kafka o Spark, pero sí es una dependencia importante del generador de datos.
 
 ## 6. Arquitectura incluida en el alcance
 
@@ -174,7 +193,37 @@ La arquitectura final estará compuesta por tres máquinas físicas.
 - Spark Worker 2.
 - IP fija sugerida: 192.168.1.103.
 
-## 7. Pruebas incluidas
+## 7. Modelo de datos
+
+Cada registro representa un evento de monitoreo generado por un servidor o servicio.
+
+Campos principales:
+
+- `id_log`
+- `timestamp_evento`
+- `servidor`
+- `ip_servidor`
+- `servicio`
+- `tipo_evento`
+- `nivel`
+- `codigo_estado`
+- `endpoint`
+- `usuario`
+- `ciudad`
+- `tiempo_respuesta_ms`
+- `uso_cpu_porcentaje`
+- `uso_ram_porcentaje`
+- `uso_disco_porcentaje`
+- `bytes_entrada`
+- `bytes_salida`
+- `peticiones_por_minuto`
+- `conexiones_activas`
+- `errores_minuto`
+- `latencia_red_ms`
+- `temperatura_cpu`
+- `mensaje`
+
+## 8. Pruebas incluidas
 
 El proyecto incluirá pruebas para validar el funcionamiento de Kafka y Spark.
 
@@ -203,7 +252,7 @@ El proyecto incluirá pruebas para validar el funcionamiento de Kafka y Spark.
 - Comparación entre ejecución local y distribuida.
 - Revisión de tiempos de ejecución.
 
-## 8. Fuera del alcance
+## 9. Fuera del alcance
 
 Para mantener el proyecto enfocado en Kafka, Spark y procesamiento distribuido, no se incluirán en la primera versión:
 
@@ -220,7 +269,7 @@ Para mantener el proyecto enfocado en Kafka, Spark y procesamiento distribuido, 
 
 Estas funcionalidades podrán considerarse como trabajo futuro.
 
-## 9. Resultado esperado
+## 10. Resultado esperado
 
 Al finalizar el proyecto se espera contar con un sistema distribuido funcional capaz de:
 
