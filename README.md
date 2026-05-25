@@ -1,324 +1,110 @@
 # Proyecto Final de Procesamiento Distribuido
 
-## Sistema distribuido para monitoreo y análisis de logs y métricas de servidores mediante Apache Kafka y Apache Spark
+Sistema distribuido para monitoreo y análisis de logs y métricas de servidores mediante Apache Kafka y Apache Spark.
 
-## 1. Descripción
+## Descripcion
 
-Este proyecto tiene como finalidad implementar un sistema distribuido para simular, transmitir y analizar logs y métricas generadas por servidores.
+Sistema que simula, transmite y analiza logs y métricas generadas por servidores. Utiliza Apache Kafka para la transmisión de eventos en tiempo real y Apache Spark para el procesamiento distribuido de grandes volúmenes de datos (100,000 registros).
 
-La solución utiliza Apache Kafka para la transmisión de eventos en tiempo real y Apache Spark para el procesamiento distribuido de grandes volúmenes de datos.
+El sistema se desarrolla primero en un entorno local contenerizado con Docker y posteriormente se migra a un entorno distribuido con tres máquinas físicas conectadas en red local.
 
-El sistema se desarrollará primero en un entorno local contenerizado con Docker y posteriormente se migrará a un entorno distribuido compuesto por tres máquinas físicas conectadas en red local.
+## Tecnologias
 
-## 2. Objetivo general
+- **Mensajería:** Apache Kafka (KRaft)
+- **Procesamiento:** Apache Spark / PySpark
+- **Base de datos:** MySQL
+- **Contenedores:** Docker / Docker Compose
+- **Productores/Consumidores:** Node.js + KafkaJS
+- **Generación de datos:** Python + Faker
+- **Formatos de datos:** CSV, JSON, SQL
 
-Diseñar e implementar un sistema distribuido utilizando Apache Kafka, Apache Spark y Docker, capaz de recolectar, transmitir y procesar logs y métricas de servidores, demostrando conceptos como particionamiento, replicación, tolerancia a fallos, procesamiento paralelo y distribución de carga.
+## Estructura del proyecto
 
-## 3. Tecnologías utilizadas
-
-- Apache Kafka.
-- Apache Spark.
-- Docker.
-- Docker Compose.
-- JavaScript / Node.js.
-- Python / PySpark.
-- Faker.
-- SQL.
-- Git.
-- Visual Studio Code.
-- Red local con IPs fijas.
-
-## 4. Tema del proyecto
-
-El tema seleccionado es el monitoreo distribuido de logs y métricas de servidores.
-
-Los datos simulados representan eventos generados por servidores, servicios web, APIs, sistemas de autenticación, red y recursos de hardware.
-
-El sistema manejará datos como:
-
-- Uso de CPU.
-- Uso de RAM.
-- Uso de disco.
-- Tiempo de respuesta.
-- Latencia de red.
-- Bytes enviados.
-- Bytes recibidos.
-- Peticiones por minuto.
-- Conexiones activas.
-- Errores por minuto.
-- Temperatura del CPU.
-- Códigos de estado HTTP.
-- Mensajes de log.
-
-## 5. Estructura del proyecto
-
-```text
+```
 proyecto-final-distribuido/
 ├── data/
-│   ├── raw/
-│   │   ├── logs_metricas.csv
-│   │   ├── logs_metricas.json
-│   │   └── logs_metricas.sql
-│   ├── processed/
-│   └── generator/
-│       └── generar_logs.py
+│   ├── raw/                  # Datos originales (CSV, JSON, SQL)
+│   ├── processed/            # Resultados generados por Spark
+│   └── generator/            # Script generador de datos (Faker)
 │
 ├── kafka/
-│   ├── producers/
-│   │   └── producer_logs.js
-│   ├── consumers/
-│   │   └── consumer_logs.js
-│   ├── topics/
-│   │   └── crear_topicos.sh
-│   ├── config/
+│   ├── producers/            # Productor de eventos (Node.js)
+│   ├── consumers/            # Consumidor de eventos (Node.js)
+│   ├── topics/               # Script para crear tópicos
 │   └── package.json
 │
 ├── spark/
-│   ├── jobs/
-│   │   ├── analisis_csv.py
-│   │   ├── analisis_json.py
-│   │   └── analisis_sql.py
-│   ├── output/
-│   └── config/
+│   ├── jobs/                 # Scripts PySpark (CSV, JSON, SQL)
+│   ├── output/               # Resultados de los análisis
+│   └── log4j2.properties     # Configuración de logs
 │
 ├── docker/
-│   ├── local/
-│   │   └── docker-compose.yml
-│   └── cluster/
-│       ├── nodo1/
-│       │   └── docker-compose.yml
-│       ├── nodo2/
-│       │   └── docker-compose.yml
-│       └── nodo3/
-│           └── docker-compose.yml
+│   ├── local/                # Docker Compose para entorno local
+│   └── cluster/              # Docker Compose para 3 nodos físicos
 │
 ├── database/
-│   ├── schema.sql
-│   └── inserts.sql
+│   ├── schema.sql            # Creación de tablas
+│   └── inserts.sql           # Inserción de datos
 │
-├── docs/
-│   ├── documentacion.md
-│   ├── alcance.md
-│   ├── arquitectura.md
-│   ├── pruebas.md
-│   └── resultados.md
-│
+├── docs/                     # Documentación del proyecto
 ├── requirements.txt
 ├── .gitignore
 └── README.md
 ```
 
-## 6. Descripción de carpetas
+## Arquitectura
 
-### `data/`
+### Entorno local (Docker)
 
-Contiene los datos utilizados por el proyecto.
+| Contenedor         | Servicio                    |
+|--------------------|-----------------------------|
+| kafka-local        | Kafka Broker (KRaft)        |
+| spark-master-local | Spark Master                |
+| spark-worker-local | Spark Worker                |
+| mysql-local        | MySQL 8                     |
 
-- `raw/`: datos originales generados en CSV, JSON y SQL.
-- `processed/`: resultados generados por Spark.
-- `generator/`: script encargado de generar los datos de prueba.
+### Entorno distribuido (3 nodos físicos)
 
-### `kafka/`
+| Nodo | IP sugerida    | Servicios                          |
+|------|----------------|------------------------------------|
+| 1    | 192.168.1.101  | Kafka Broker + Controller, Spark Master |
+| 2    | 192.168.1.102  | Kafka Broker + Controller, Spark Worker 1 |
+| 3    | 192.168.1.103  | Kafka Broker + Controller, Spark Worker 2 |
 
-Contiene los elementos relacionados con Apache Kafka.
+## Topicos Kafka
 
-- `producers/`: productores que envían mensajes a Kafka.
-- `consumers/`: consumidores que leen mensajes desde Kafka.
-- `topics/`: scripts para crear tópicos.
-- `config/`: archivos de configuración relacionados con Kafka.
-- `package.json`: dependencias de Node.js para productores y consumidores.
+| Tópico             | Descripción                        |
+|--------------------|------------------------------------|
+| metricas_recursos  | CPU, RAM, disco, temperatura       |
+| logs_http          | Peticiones HTTP y códigos de estado|
+| logs_errores       | Eventos de error y críticos        |
+| metricas_red       | Latencia, bytes, conexiones        |
+| logs_seguridad     | Eventos de autenticación           |
 
-### `spark/`
+Configuración local: 3 particiones, factor de replicación 1.
 
-Contiene los scripts de procesamiento con Apache Spark.
+## Instalacion y ejecucion
 
-- `jobs/`: scripts PySpark para procesar CSV, JSON y SQL.
-- `output/`: resultados generados por los trabajos Spark.
-- `config/`: configuraciones adicionales de Spark.
+### Requisitos previos
 
-### `docker/`
+- Docker y Docker Compose
+- Node.js
+- Python 3 con entorno virtual
 
-Contiene los archivos de Docker Compose.
+### 1. Levantar el entorno local
 
-- `local/`: entorno local para pruebas en una sola máquina.
-- `cluster/`: configuración distribuida para tres nodos físicos.
-
-### `database/`
-
-Contiene los scripts SQL del proyecto.
-
-- `schema.sql`: creación de tablas.
-- `inserts.sql`: inserción de datos.
-
-### `docs/`
-
-Contiene la documentación del proyecto.
-
-- `documentacion.md`: documentación general.
-- `alcance.md`: alcance del sistema.
-- `arquitectura.md`: arquitectura técnica.
-- `pruebas.md`: pruebas realizadas.
-- `resultados.md`: resultados obtenidos.
-
-## 7. Arquitectura general
-
-La arquitectura final estará formada por tres máquinas físicas conectadas en red local.
-
-```text
-Nodo 1
-- Kafka Broker + Controller 1
-- Spark Master
-- IP sugerida: 192.168.1.101
-
-Nodo 2
-- Kafka Broker + Controller 2
-- Spark Worker 1
-- IP sugerida: 192.168.1.102
-
-Nodo 3
-- Kafka Broker + Controller 3
-- Spark Worker 2
-- IP sugerida: 192.168.1.103
+```bash
+cd docker/local
+docker compose up -d
 ```
 
-## 8. Tópicos Kafka
+Verificar contenedores:
 
-Se crearán al menos cinco tópicos:
-
-- `metricas_recursos`
-- `logs_http`
-- `logs_errores`
-- `metricas_red`
-- `logs_seguridad`
-
-Cada tópico tendrá particiones y factor de replicación.
-
-## 9. Modelo de datos
-
-Cada registro representa un evento de monitoreo generado por un servidor o servicio.
-
-Campos principales:
-
-- `id_log`
-- `timestamp_evento`
-- `servidor`
-- `ip_servidor`
-- `servicio`
-- `tipo_evento`
-- `nivel`
-- `codigo_estado`
-- `endpoint`
-- `usuario`
-- `ciudad`
-- `tiempo_respuesta_ms`
-- `uso_cpu_porcentaje`
-- `uso_ram_porcentaje`
-- `uso_disco_porcentaje`
-- `bytes_entrada`
-- `bytes_salida`
-- `peticiones_por_minuto`
-- `conexiones_activas`
-- `errores_minuto`
-- `latencia_red_ms`
-- `temperatura_cpu`
-- `mensaje`
-
-## 10. Ejemplo de registro JSON
-
-```json
-{
-  "id_log": 1,
-  "timestamp_evento": "2026-06-01 10:35:22",
-  "servidor": "server-01",
-  "ip_servidor": "192.168.1.101",
-  "servicio": "api-gateway",
-  "tipo_evento": "request",
-  "nivel": "INFO",
-  "codigo_estado": 200,
-  "endpoint": "/api/productos",
-  "usuario": "usuario_demo",
-  "ciudad": "Aguascalientes",
-  "tiempo_respuesta_ms": 145,
-  "uso_cpu_porcentaje": 45.7,
-  "uso_ram_porcentaje": 62.3,
-  "uso_disco_porcentaje": 58.9,
-  "bytes_entrada": 2048,
-  "bytes_salida": 8192,
-  "peticiones_por_minuto": 320,
-  "conexiones_activas": 87,
-  "errores_minuto": 2,
-  "latencia_red_ms": 24,
-  "temperatura_cpu": 61.3,
-  "mensaje": "Solicitud procesada correctamente"
-}
+```bash
+docker compose ps
 ```
 
-## 11. Flujo del sistema
-
-### Flujo Kafka
-
-```text
-Servidor simulado
-        ↓
-Productor Kafka
-        ↓
-Tópico Kafka
-        ↓
-Particiones replicadas
-        ↓
-Consumidor Kafka
-```
-
-### Flujo Spark
-
-```text
-Datos CSV / JSON / SQL
-        ↓
-Apache Spark
-        ↓
-Procesamiento distribuido
-        ↓
-Resultados estadísticos
-```
-
-## 12. Análisis con Spark
-
-Los trabajos de Spark permitirán obtener estadísticas como:
-
-- Promedio de uso de CPU por servidor.
-- Promedio de uso de RAM por servicio.
-- Máximo uso de disco por servidor.
-- Promedio de tiempo de respuesta.
-- Total de errores por servidor.
-- Latencia promedio de red.
-- Total de bytes enviados y recibidos.
-- Servidores con métricas críticas.
-- Comparación entre procesamiento local y distribuido.
-
-## 13. Requisitos generales
-
-Para ejecutar el proyecto se requiere:
-
-- Docker instalado.
-- Docker Compose instalado.
-- Node.js instalado.
-- Python instalado.
-- Visual Studio Code.
-- Git.
-- Tres máquinas físicas para la versión distribuida.
-- Red local con IPs fijas o reservadas.
-
-## 14. Dependencias de Python
-
-Para la generación de datos se utiliza la librería Faker.
-
-El archivo `requirements.txt` debe contener:
-
-```txt
-Faker
-```
-
-Para instalar las dependencias se recomienda usar un entorno virtual:
+### 2. Instalar dependencias de Python
 
 ```bash
 python3 -m venv venv
@@ -326,276 +112,173 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Para ejecutar el generador de datos:
+### 3. Generar datos de prueba
 
 ```bash
 python data/generator/generar_logs.py
 ```
 
-> **Nota:** No se recomienda instalar paquetes directamente en el Python global del sistema. En distribuciones recientes de Ubuntu o Linux Mint puede aparecer el error `externally-managed-environment`, por lo que se debe usar un entorno virtual.
+Esto genera 100,000 registros en los formatos CSV, JSON y SQL.
 
-## 15. Instalación inicial del proyecto
-
-Crear la estructura de carpetas:
-
-```bash
-mkdir -p data/raw data/processed data/generator
-mkdir -p kafka/producers kafka/consumers kafka/topics kafka/config
-mkdir -p spark/jobs spark/output spark/config
-mkdir -p docker/local docker/cluster/nodo1 docker/cluster/nodo2 docker/cluster/nodo3
-mkdir -p database docs
-```
-
-Crear archivos base:
-
-```bash
-touch data/raw/logs_metricas.csv
-touch data/raw/logs_metricas.json
-touch data/raw/logs_metricas.sql
-touch data/generator/generar_logs.py
-
-touch kafka/producers/producer_logs.js
-touch kafka/consumers/consumer_logs.js
-touch kafka/topics/crear_topicos.sh
-touch kafka/package.json
-
-touch spark/jobs/analisis_csv.py
-touch spark/jobs/analisis_json.py
-touch spark/jobs/analisis_sql.py
-
-touch docker/local/docker-compose.yml
-touch docker/cluster/nodo1/docker-compose.yml
-touch docker/cluster/nodo2/docker-compose.yml
-touch docker/cluster/nodo3/docker-compose.yml
-
-touch database/schema.sql
-touch database/inserts.sql
-
-touch docs/documentacion.md
-touch docs/alcance.md
-touch docs/arquitectura.md
-touch docs/pruebas.md
-touch docs/resultados.md
-
-touch README.md
-touch requirements.txt
-touch .gitignore
-```
-
-Dar permiso de ejecución al script de tópicos:
-
-```bash
-chmod +x kafka/topics/crear_topicos.sh
-```
-
-## 16. Configuracion local
-
-## Levantamiento del entorno
-
-Comando utilizado:
-
-```bash
-docker compose up -d
-```
-
-Servicios esperados:
-
-```text
-kafka-local
-spark-master-local
-spark-worker-local
-mysql-local
-```
-
-## Verificación de contenedores
-
-Comando para verificar contenedores:
-
-```bash
-docker compose ps
-```
-
-También se puede verificar con:
-
-```bash
-docker ps
-```
-
-## Validación de Kafka local
-
-Kafka debe ejecutarse como un nodo local en modo KRaft.
-
-Comando para entrar al contenedor:
-
-```bash
-docker exec -it kafka-local bash
-```
-
-Comando para listar tópicos:
-
-```bash
-/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list
-```
-
-Si el comando no muestra errores, Kafka está funcionando correctamente.
-
-## Validación de Spark local
-
-Spark debe mostrar un Master y un Worker conectado.
-
-URL de validación:
-
-```text
-http://localhost:8080
-```
-
-En la interfaz debe aparecer al menos un Worker conectado al Master.
-
-Contenedores relacionados:
-
-```text
-spark-master-local
-spark-worker-local
-```
-
-Comandos para revisar logs:
-
-```bash
-docker logs spark-master-local --tail 80
-docker logs spark-worker-local --tail 80
-```
-
-## Validación de MySQL local
-
-Comando para entrar al contenedor:
-
-```bash
-docker exec -it mysql-local mysql -u root -p
-```
-
-Contraseña configurada:
-
-```text
-root123
-```
-
-Comandos dentro de MySQL:
-
-```sql
-SHOW DATABASES;
-USE monitoreo_servidores;
-SHOW TABLES;
-DESCRIBE logs_metricas_servidores;
-```
-
-Se espera que exista la base de datos:
-
-```text
-monitoreo_servidores
-```
-
-Y la tabla:
-
-```text
-logs_metricas_servidores
-```
-
-# Creación de tópicos en Kafka local
-
-Después de comprobar que los contenedores funcionaban correctamente, lo siguiente fue crear los tópicos reales de Kafka.
-
-## 1. Creación del script
-
-Primero se creó el archivo:
-
-```text
-kafka/topics/crear_topicos.sh
-```
-
-Este script contiene la lógica para crear los cinco tópicos del proyecto utilizando las herramientas internas de Kafka. Define el servidor de Kafka, la lista de tópicos y los parámetros de particiones y factor de replicación.
-
-## 2. Permisos de ejecución
-
-Se dieron permisos de ejecución al script desde la raíz del proyecto:
-
-```bash
-chmod +x kafka/topics/crear_topicos.sh
-```
-
-## 3. Copia del script al contenedor
-
-Como el script usa herramientas internas de Kafka ubicadas en `/opt/kafka/bin/`, se copió el script dentro del contenedor Kafka:
+### 4. Crear topicos en Kafka
 
 ```bash
 docker cp kafka/topics/crear_topicos.sh kafka-local:/tmp/crear_topicos.sh
+docker exec -it kafka-local bash -c "chmod +x /tmp/crear_topicos.sh && /tmp/crear_topicos.sh"
 ```
 
-## 4. Entrada al contenedor
-
-Se entró al contenedor:
+Verificar:
 
 ```bash
-docker exec -it kafka-local bash
+docker exec -it kafka-local /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list
 ```
 
-## 5. Ejecución del script
-
-Dentro del contenedor se dieron permisos al script copiado:
+### 5. Cargar datos en MySQL
 
 ```bash
-chmod +x /tmp/crear_topicos.sh
+docker exec -i mysql-local mysql -u root -proot123 monitoreo_servidores < database/inserts.sql
 ```
 
-Y se ejecutó:
+Verificar:
 
 ```bash
-/tmp/crear_topicos.sh
+docker exec -it mysql-local mysql -u root -proot123 -e "SELECT COUNT(*) FROM monitoreo_servidores.logs_metricas_servidores;"
 ```
 
-Con eso se crearon los cinco tópicos del proyecto:
+### 6. Ejecutar productor y consumidor Kafka
 
-```text
-metricas_recursos
-logs_http
-logs_errores
-metricas_red
-logs_seguridad
-```
-
-## 6. Verificación de los tópicos
-
-Para verificar que sí se crearon, se usó:
+Terminal 1 (consumidor):
 
 ```bash
-/opt/kafka/bin/kafka-topics.sh \
-  --bootstrap-server localhost:9092 \
-  --list
+cd kafka
+npm install
+npm run consumer
 ```
 
-También se puede verificar desde fuera del contenedor con:
+Terminal 2 (productor):
 
 ```bash
-docker exec -it kafka-local /opt/kafka/bin/kafka-topics.sh \
-  --bootstrap-server localhost:9092 \
-  --list
+cd kafka
+npm run producer
 ```
 
-Y para revisar los detalles de un tópico específico:
+### 7. Ejecutar analisis con Spark
+
+**Análisis CSV:**
 
 ```bash
-docker exec -it kafka-local /opt/kafka/bin/kafka-topics.sh \
-  --bootstrap-server localhost:9092 \
-  --describe \
-  --topic metricas_recursos
+docker exec -it spark-master-local /opt/spark/bin/spark-submit \
+  --master spark://spark-master:7077 \
+  --conf "spark.ui.showConsoleProgress=false" \
+  --conf "spark.driver.extraJavaOptions=-Dlog4j.configurationFile=/opt/spark/jobs/log4j2.properties" \
+  --conf "spark.executor.extraJavaOptions=-Dlog4j.configurationFile=/opt/spark/jobs/log4j2.properties" \
+  /opt/spark/jobs/analisis_csv.py
 ```
 
-## 7. Configuración utilizada
+**Análisis JSON:**
 
-En el entorno local se usó:
-
-```text
---partitions 3
---replication-factor 1
+```bash
+docker exec -it spark-master-local /opt/spark/bin/spark-submit \
+  --master spark://spark-master:7077 \
+  --conf "spark.ui.showConsoleProgress=false" \
+  --conf "spark.driver.extraJavaOptions=-Dlog4j.configurationFile=/opt/spark/jobs/log4j2.properties" \
+  --conf "spark.executor.extraJavaOptions=-Dlog4j.configurationFile=/opt/spark/jobs/log4j2.properties" \
+  /opt/spark/jobs/analisis_json.py
 ```
 
-Esto se debe a que localmente solo existe un broker Kafka. En la versión final distribuida, cuando haya tres nodos físicos, el factor de replicación se podrá cambiar a `3`.
+**Análisis SQL (MySQL):**
+
+```bash
+docker exec -it spark-master-local /opt/spark/bin/spark-submit \
+  --master spark://spark-master:7077 \
+  --packages com.mysql:mysql-connector-j:8.4.0 \
+  --conf "spark.ui.showConsoleProgress=false" \
+  --conf "spark.driver.extraJavaOptions=-Dlog4j.configurationFile=/opt/spark/jobs/log4j2.properties" \
+  --conf "spark.executor.extraJavaOptions=-Dlog4j.configurationFile=/opt/spark/jobs/log4j2.properties" \
+  /opt/spark/jobs/analisis_sql.py
+```
+
+## Analisis realizados por Spark
+
+Cada job (CSV, JSON, SQL) ejecuta los siguientes análisis sobre los 100,000 registros:
+
+- Promedio de CPU, RAM y disco por servidor
+- Estadísticas de tiempo de respuesta por nivel (promedio, min, max, desviación)
+- Total de errores por servidor
+- Latencia promedio por servicio
+- Conteo de eventos por nivel y tipo
+- Peticiones totales por servicio
+- Tráfico total (bytes) por servidor
+- Eventos críticos
+- Servidores con uso crítico de recursos
+- Servicios con mayor tiempo de respuesta
+
+## Flujo del sistema
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    FLUJO KAFKA                           │
+│                                                         │
+│  Productor (Node.js) → Tópicos Kafka → Consumidor      │
+└─────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────┐
+│                    FLUJO SPARK                           │
+│                                                         │
+│  Datos (CSV/JSON/MySQL) → Spark → Resultados            │
+└─────────────────────────────────────────────────────────┘
+```
+
+## Validacion del entorno
+
+| Componente | Cómo verificar                                      |
+|------------|-----------------------------------------------------|
+| Kafka      | Listar tópicos con `kafka-topics.sh --list`         |
+| Spark UI   | Acceder a `http://localhost:8080`                   |
+| MySQL      | Consultar `SELECT COUNT(*)` en la tabla de logs     |
+| Productor  | Ejecutar `npm run producer` y ver mensajes enviados |
+| Consumidor | Ejecutar `npm run consumer` y ver mensajes leídos   |
+
+## Modelo de datos
+
+Cada registro contiene los siguientes campos:
+
+| Campo                  | Descripción                          |
+|------------------------|--------------------------------------|
+| id_log                 | Identificador único                  |
+| timestamp_evento       | Fecha y hora del evento              |
+| servidor               | Nombre del servidor                  |
+| ip_servidor            | Dirección IP                         |
+| servicio               | Servicio que generó el evento        |
+| tipo_evento            | Tipo (request, error, auth, etc.)    |
+| nivel                  | INFO, WARNING, ERROR, CRITICAL       |
+| codigo_estado          | Código HTTP                          |
+| endpoint               | Ruta del servicio                    |
+| usuario                | Usuario asociado                     |
+| ciudad                 | Ciudad de origen                     |
+| tiempo_respuesta_ms    | Tiempo de respuesta en ms            |
+| uso_cpu_porcentaje     | Uso de CPU (%)                       |
+| uso_ram_porcentaje     | Uso de RAM (%)                       |
+| uso_disco_porcentaje   | Uso de disco (%)                     |
+| bytes_entrada          | Bytes recibidos                      |
+| bytes_salida           | Bytes enviados                       |
+| peticiones_por_minuto  | Peticiones por minuto                |
+| conexiones_activas     | Conexiones activas                   |
+| errores_minuto         | Errores por minuto                   |
+| latencia_red_ms        | Latencia de red en ms                |
+| temperatura_cpu        | Temperatura del CPU                  |
+| mensaje                | Mensaje descriptivo del evento       |
+
+## Proximos pasos
+
+1. Migrar el entorno a las tres máquinas físicas
+2. Configurar replicación real (factor 3)
+3. Probar tolerancia a fallos y distribución de carga
+4. Documentar resultados y comparaciones entre fuentes
+
+## Documentacion adicional
+
+- [docs/alcance.md](docs/alcance.md) — Alcance del sistema
+- [docs/arquitectura.md](docs/arquitectura.md) — Arquitectura técnica
+- [docs/pruebas.md](docs/pruebas.md) — Pruebas realizadas
+- [docs/resultados.md](docs/resultados.md) — Resultados obtenidos

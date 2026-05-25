@@ -1,0 +1,14 @@
+{
+  "name": "kafka-logs-servidores",
+  "version": "1.0.0",
+  "description": "Productores y consumidores Kafka para logs y métricas de servidores",
+  "main": "producers/producer_logs.js",
+  "type": "commonjs",
+  "scripts": {
+    "producer": "node producers/producer_logs.js",
+    "consumer": "node consumers/consumer_logs.js"
+  },
+  "dependencies": {
+    "kafkajs": "^2.2.4"
+  }
+}
