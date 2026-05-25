@@ -388,29 +388,214 @@ Dar permiso de ejecución al script de tópicos:
 chmod +x kafka/topics/crear_topicos.sh
 ```
 
-## 16. Estado actual del proyecto
+## 16. Configuracion local
 
-- Estructura de carpetas creada.
-- Documentación inicial creada.
-- Alcance definido.
-- Arquitectura base definida.
-- Tema seleccionado: monitoreo distribuido de logs y métricas de servidores.
-- Entorno virtual de Python configurado.
-- Dependencia Faker agregada al proyecto.
-- Modelo de datos actualizado.
-- Generador de datos en desarrollo.
+## Levantamiento del entorno
 
-## 17. Próximos pasos
+Comando utilizado:
 
-1. Finalizar el generador de datos.
-2. Generar 100,000 registros en CSV, JSON y SQL.
-3. Crear el esquema SQL.
-4. Crear el entorno local con Docker Compose.
-5. Levantar Kafka local.
-6. Crear los tópicos Kafka.
-7. Desarrollar productor y consumidor.
-8. Levantar Spark local.
-9. Crear los scripts de análisis con PySpark.
-10. Migrar a tres máquinas físicas.
-11. Ejecutar pruebas de tolerancia a fallos.
-12. Documentar resultados y conclusiones.
+```bash
+docker compose up -d
+```
+
+Servicios esperados:
+
+```text
+kafka-local
+spark-master-local
+spark-worker-local
+mysql-local
+```
+
+## Verificación de contenedores
+
+Comando para verificar contenedores:
+
+```bash
+docker compose ps
+```
+
+También se puede verificar con:
+
+```bash
+docker ps
+```
+
+## Validación de Kafka local
+
+Kafka debe ejecutarse como un nodo local en modo KRaft.
+
+Comando para entrar al contenedor:
+
+```bash
+docker exec -it kafka-local bash
+```
+
+Comando para listar tópicos:
+
+```bash
+/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list
+```
+
+Si el comando no muestra errores, Kafka está funcionando correctamente.
+
+## Validación de Spark local
+
+Spark debe mostrar un Master y un Worker conectado.
+
+URL de validación:
+
+```text
+http://localhost:8080
+```
+
+En la interfaz debe aparecer al menos un Worker conectado al Master.
+
+Contenedores relacionados:
+
+```text
+spark-master-local
+spark-worker-local
+```
+
+Comandos para revisar logs:
+
+```bash
+docker logs spark-master-local --tail 80
+docker logs spark-worker-local --tail 80
+```
+
+## Validación de MySQL local
+
+Comando para entrar al contenedor:
+
+```bash
+docker exec -it mysql-local mysql -u root -p
+```
+
+Contraseña configurada:
+
+```text
+root123
+```
+
+Comandos dentro de MySQL:
+
+```sql
+SHOW DATABASES;
+USE monitoreo_servidores;
+SHOW TABLES;
+DESCRIBE logs_metricas_servidores;
+```
+
+Se espera que exista la base de datos:
+
+```text
+monitoreo_servidores
+```
+
+Y la tabla:
+
+```text
+logs_metricas_servidores
+```
+
+# Creación de tópicos en Kafka local
+
+Después de comprobar que los contenedores funcionaban correctamente, lo siguiente fue crear los tópicos reales de Kafka.
+
+## 1. Creación del script
+
+Primero se creó el archivo:
+
+```text
+kafka/topics/crear_topicos.sh
+```
+
+Este script contiene la lógica para crear los cinco tópicos del proyecto utilizando las herramientas internas de Kafka. Define el servidor de Kafka, la lista de tópicos y los parámetros de particiones y factor de replicación.
+
+## 2. Permisos de ejecución
+
+Se dieron permisos de ejecución al script desde la raíz del proyecto:
+
+```bash
+chmod +x kafka/topics/crear_topicos.sh
+```
+
+## 3. Copia del script al contenedor
+
+Como el script usa herramientas internas de Kafka ubicadas en `/opt/kafka/bin/`, se copió el script dentro del contenedor Kafka:
+
+```bash
+docker cp kafka/topics/crear_topicos.sh kafka-local:/tmp/crear_topicos.sh
+```
+
+## 4. Entrada al contenedor
+
+Se entró al contenedor:
+
+```bash
+docker exec -it kafka-local bash
+```
+
+## 5. Ejecución del script
+
+Dentro del contenedor se dieron permisos al script copiado:
+
+```bash
+chmod +x /tmp/crear_topicos.sh
+```
+
+Y se ejecutó:
+
+```bash
+/tmp/crear_topicos.sh
+```
+
+Con eso se crearon los cinco tópicos del proyecto:
+
+```text
+metricas_recursos
+logs_http
+logs_errores
+metricas_red
+logs_seguridad
+```
+
+## 6. Verificación de los tópicos
+
+Para verificar que sí se crearon, se usó:
+
+```bash
+/opt/kafka/bin/kafka-topics.sh \
+  --bootstrap-server localhost:9092 \
+  --list
+```
+
+También se puede verificar desde fuera del contenedor con:
+
+```bash
+docker exec -it kafka-local /opt/kafka/bin/kafka-topics.sh \
+  --bootstrap-server localhost:9092 \
+  --list
+```
+
+Y para revisar los detalles de un tópico específico:
+
+```bash
+docker exec -it kafka-local /opt/kafka/bin/kafka-topics.sh \
+  --bootstrap-server localhost:9092 \
+  --describe \
+  --topic metricas_recursos
+```
+
+## 7. Configuración utilizada
+
+En el entorno local se usó:
+
+```text
+--partitions 3
+--replication-factor 1
+```
+
+Esto se debe a que localmente solo existe un broker Kafka. En la versión final distribuida, cuando haya tres nodos físicos, el factor de replicación se podrá cambiar a `3`.
